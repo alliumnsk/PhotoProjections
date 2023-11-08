@@ -1,0 +1,65 @@
+<!--
+08.11.2023 20:16 started[ 21:29]
+-->
+
+<html>
+<body>
+<canvas id="c">
+<script>
+var imgURLs=[
+'2gJDLMRao4w.jpg',
+'II7HNkEMpO8.jpg'
+];
+
+function processimage(img) {
+	var wid=img.width,hei=img.height;
+	var oc = new OffscreenCanvas(wid,hei);
+	var cc = oc.getContext('2d');
+	cc.drawImage(img,0,0);
+	//document.body.append(img);
+	var d1 = cc.getImageData(0,0,wid,hei);
+	var u1 = new Uint32Array(d1.data.buffer);
+
+	window.c.width=wid;
+	window.c.height=hei;
+
+	var c2 = window.c.getContext('2d');
+	var d2 = c2.getImageData(0,0,wid,hei);
+	var u2 = new Uint32Array(d2.data.buffer);
+
+	var conv = 1/wid;
+	for(let i=0;i<hei;i++) {
+		for(let j=0;j<wid;j++) {
+			// i=200; j=200; debugger;
+			var oldy=i-hei/2,oldx=j-wid/2;
+			var r2 = oldx**2 + oldy**2;
+			var r=Math.sqrt(r2);
+			var inv_r = 1/(r+1e-8);
+
+			var rad=2*Math.atan(0.5*r*conv)
+			//var rad=r*conv;
+
+			var oldr = Math.tan(rad)/conv;
+			oldx=oldr*oldx*inv_r + wid/2;
+			oldy=oldr*oldy*inv_r + hei/2;
+			if(oldx<0) oldx=0;
+			if(oldx>=wid) oldx=wid-1;
+			if(oldy<0) oldy=0;
+			if(oldy>=hei) oldy=hei-1;
+			u2[wid*i+j] = u1[wid*(oldy|0)+(oldx|0)];
+
+		}
+	}
+
+	c2.putImageData(d2,0,0);
+}
+
+var img= new Image();
+img.src=imgURLs[0];
+img.onload=()=> {
+	processimage(img);
+};
+
+</script>
+</body>
+</html>
